@@ -1,0 +1,224 @@
+package DaSweep;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Dictionary;
+import java.util.Hashtable;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.border.EmptyBorder;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
+public class MineSweeper extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+	
+	static final int GridSize=10;
+	static final int ScreenSize=800;
+	static int MineNumber=20;
+	static Grid MainGrid;
+	static boolean FirstTime=true;
+	static SpecButton[][] AllButtons=new SpecButton[GridSize][GridSize];
+	static SpecButton PressedButt;
+	static int Xindex=0;
+	static int Yindex=0;
+	public static boolean flagTool=false;
+
+
+
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					MineSweeper frame = new MineSweeper();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	static int CurrentPos;
+	public MineSweeper() {
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, ScreenSize, ScreenSize);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+
+	      ActionMap actionMap = contentPane.getActionMap();
+	      int condition = JComponent.WHEN_IN_FOCUSED_WINDOW;
+	      InputMap inputMap = contentPane.getInputMap(condition);
+
+
+	      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_1, 0), "1Action");
+	      actionMap.put("1Action", new UpAction());
+	      
+	      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_2, 0), "2Action");
+	      actionMap.put("2Action", new DownAction());
+		
+		setContentPane(contentPane);		
+
+		MainGrid=new Grid(GridSize, ScreenSize);
+
+		for(int x=0;x<GridSize;x++) {
+			Xindex=x;
+			for(int y=0;y<GridSize;y++) {
+				Yindex=y;
+				AllButtons[x][y]=new SpecButton();
+				AllButtons[x][y].setColor(new Color(0, 240, 0));
+				AllButtons[x][y].setBounds((x+1)*MainGrid.CellSize, (y+1)*MainGrid.CellSize, MainGrid.CellSize, MainGrid.CellSize);
+				AllButtons[x][y].setBorder(BorderFactory.createLineBorder(new Color(0,90,0),5));
+				AllButtons[x][y].setOpaque(true);
+				
+				AllButtons[x][y].addActionListener(new ActionListener() {
+					int k=Xindex;
+					int j=Yindex;
+					public void actionPerformed(ActionEvent e) {
+						if(FirstTime) {
+							FirstTime=false;
+							MainGrid.GenerateGrid(MineNumber,k,j);
+							FirsTurn(k,j);
+						}else {
+						if(!flagTool) {
+						RevealTile(k,j);
+						}else {
+							SetFlag(k,j);
+						}
+					}
+					}
+				});
+				contentPane.add(AllButtons[x][y]);
+			}
+		}
+
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+	}
+	static public void RevealTile(int X, int Y) {
+		
+		if(X<GridSize&&X>=0&&Y<GridSize&&Y>=0) {
+			
+			if(Grid.CellValue[X][Y]==0) {
+				AllButtons[X][Y].setColor(new Color(230,190,160));
+				Grid.CellValue[X][Y]=-2;
+				FirsTurn(X, Y);
+				return;
+			}
+			if(Grid.CellValue[X][Y]==-1) {
+				for(int i=0;i<GridSize;i++) {
+					for(int j=0;j<GridSize;j++) {
+						AllButtons[i][j].setEnabled(false);
+					}
+				}
+			}
+			
+			if(Grid.CellValue[X][Y]!=-2) AllButtons[X][Y].setText(Integer.toString(Grid.CellValue[X][Y]));
+			AllButtons[X][Y].setColor(new Color(230,190,160));
+			Grid.CellValue[X][Y]=-2;
+			
+			
+		}
+	}
+	public static void FirsTurn(int X, int Y) {
+		RevealTile(X,Y);
+		System.out.println(X+":"+Y);
+		if(CheckValue0(X-1,Y+1))  FirsTurn(X-1,Y+1);
+		if(!CheckValueBomb(X-1,Y+1)) RevealTile(X-1,Y+1);
+		
+		if(CheckValue0(X-1,Y))  FirsTurn(X-1,Y);
+		if(!CheckValueBomb(X-1,Y)) RevealTile(X-1,Y); 
+		
+		if(CheckValue0(X-1,Y-1))  FirsTurn(X-1,Y-1);
+		if(!CheckValueBomb(X-1,Y-1)) RevealTile(X-1,Y-1); 
+		
+		
+		if(CheckValue0(X+1,Y+1))  FirsTurn(X+1,Y+1);
+		if(!CheckValueBomb(X+1,Y+1)) RevealTile(X+1,Y+1); 
+		
+		if(CheckValue0(X+1,Y))  FirsTurn(X+1,Y);
+		if(!CheckValueBomb(X+1,Y)) RevealTile(X+1,Y);
+		
+		if(CheckValue0(X+1,Y-1))  FirsTurn(X+1,Y-1);
+		if(!CheckValueBomb(X+1,Y-1)) RevealTile(X+1,Y-1);
+		
+		
+		if(CheckValue0(X,Y+1))  FirsTurn(X,Y+1);
+		if(!CheckValueBomb(X,Y+1)) RevealTile(X,Y+1);
+		
+		if(CheckValue0(X,Y-1))  FirsTurn(X,Y-1);
+		if(!CheckValueBomb(X,Y-1)) RevealTile(X,Y-1);
+		/*
+		IncreaseValue(X-1,Y+1);
+		IncreaseValue(X-1,Y);
+		IncreaseValue(X-1,Y-1);
+		
+		IncreaseValue(X+1,Y+1);
+		IncreaseValue(X+1,Y);
+		IncreaseValue(X+1,Y-1);
+		
+		IncreaseValue(X,Y+1);
+		IncreaseValue(X,Y-1);	
+		*/	
+	}
+	
+	static void SetFlag(int X, int Y){
+		if(X<GridSize&&X>=0&&Y<GridSize&&Y>=0) {
+			if(!AllButtons[X][Y].flagged) {
+			AllButtons[X][Y].setColor(new Color(230,30,30));
+			AllButtons[X][Y].flagged=true;
+			}else {
+				AllButtons[X][Y].setColor(new Color(0, 240, 0));	
+				AllButtons[X][Y].flagged=false;
+			}
+		}		
+	}
+	
+	public static boolean CheckValue0(int X, int Y) {
+		if(X<GridSize&&X>=0&&Y<GridSize&&Y>=0) {
+			if(Grid.CellValue[X][Y]==0) return true;
+		}
+		return false;
+	}
+	public static boolean CheckValueBomb(int X, int Y) {
+		if(X<GridSize&&X>=0&&Y<GridSize&&Y>=0) {
+			if(Grid.CellValue[X][Y]==-1) return true;
+		}
+		return false;		
+	}
+
+
+	
+}
+@SuppressWarnings("serial")
+class UpAction extends AbstractAction {
+   @Override
+   public void actionPerformed(ActionEvent arg0) {
+      MineSweeper.flagTool=false;
+   }
+}
+@SuppressWarnings("serial")
+class DownAction extends AbstractAction {
+   @Override
+   public void actionPerformed(ActionEvent arg0) {
+      MineSweeper.flagTool=true;
+   }
+}
+

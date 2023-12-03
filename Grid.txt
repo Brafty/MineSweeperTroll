@@ -1,0 +1,59 @@
+package DaSweep;
+
+import java.util.Random;
+
+public class Grid {
+	static int[][] CellValue;
+	int CellSize;
+	int GridSize;
+	Random rnd=new Random();
+
+	Grid(int GridSize, int ScreenSize){
+		CellValue=new int[GridSize][GridSize];
+		this.GridSize=GridSize;
+		CellSize=ScreenSize/(GridSize+2);
+		
+	}
+	public void GenerateGrid(int BombNumber, int XStart, int YStart) {
+		int Xbomb=0;
+		int Ybomb=0;
+		
+		for(int i=0;i<GridSize;i++) {
+			for(int j=0;j<GridSize;j++) {
+				CellValue[i][j]=0;
+			}
+		}
+		
+		for(int i=0;i<BombNumber;i++) {
+			do {
+				Xbomb=rnd.nextInt(GridSize);
+				Ybomb=rnd.nextInt(GridSize);
+			}while(CellValue[Xbomb][Ybomb]==-1||(XStart==Xbomb&&YStart==Ybomb)||
+					Xbomb-1==XStart&&Ybomb-1==YStart||
+					Xbomb-1==XStart&&Ybomb==YStart||
+					Xbomb-1==XStart&&Ybomb+1==YStart||
+					Xbomb+1==XStart&&Ybomb+1==YStart||
+					Xbomb+1==XStart&&Ybomb==YStart||
+					Xbomb+1==XStart&&Ybomb-1==YStart||
+					Xbomb==XStart&&Ybomb+1==YStart||
+					Xbomb==XStart&&Ybomb-1==YStart);
+			CellValue[Xbomb][Ybomb]=-1;
+			IncreaseValue(Xbomb-1,Ybomb+1);
+			IncreaseValue(Xbomb-1,Ybomb);
+			IncreaseValue(Xbomb-1,Ybomb-1);
+			
+			IncreaseValue(Xbomb+1,Ybomb+1);
+			IncreaseValue(Xbomb+1,Ybomb);
+			IncreaseValue(Xbomb+1,Ybomb-1);
+			
+			IncreaseValue(Xbomb,Ybomb+1);
+			IncreaseValue(Xbomb,Ybomb-1);
+		}
+	}
+	public void IncreaseValue(int x, int y) {
+		if(x>=0&&y>=0&&x<GridSize&&y<GridSize) {
+			if(CellValue[x][y]!=-1) CellValue[x][y]++;
+		}
+	}
+	
+}
